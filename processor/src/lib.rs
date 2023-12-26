@@ -47,7 +47,7 @@ pub use host::{
     DefaultHost, Host,
 };
 
-mod chiplets;
+pub mod chiplets;
 use chiplets::Chiplets;
 
 mod trace;

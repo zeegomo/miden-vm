@@ -10,20 +10,20 @@ use miden_air::trace::chiplets::{
 };
 use vm_core::{code_blocks::OpBatch, Kernel};
 
-mod bitwise;
+pub mod bitwise;
 use bitwise::{Bitwise, BitwiseLookup};
 
-mod hasher;
+pub mod hasher;
 pub use hasher::init_state_from_words;
 use hasher::Hasher;
 
-mod memory;
+pub mod memory;
 use memory::{Memory, MemoryLookup};
 
 mod kernel_rom;
 use kernel_rom::{KernelProcLookup, KernelRom};
 
-mod aux_trace;
+pub mod aux_trace;
 #[cfg(test)]
 pub(crate) use aux_trace::ChipletsVTableRow;
 pub(crate) use aux_trace::{AuxTraceBuilder, ChipletsBus, ChipletsVTableTraceBuilder};
