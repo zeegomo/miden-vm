@@ -3,7 +3,7 @@ use super::{
     BTreeMap, ColMatrix, Felt, FieldElement, StarkField, Vec, Word,
 };
 
-mod bus;
+pub mod bus;
 pub(crate) use bus::{ChipletLookup, ChipletsBus, ChipletsBusRow};
 
 mod virtual_table;
