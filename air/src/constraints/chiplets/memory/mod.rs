@@ -18,12 +18,12 @@ pub const NUM_CONSTRAINTS: usize = 17;
 /// The degrees of constraints on the management of the memory chiplet. All constraint degrees are
 /// increased by 3 due to the selectors for the memory chiplet.
 pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
-    5, 5, // Enforce that the memory selectors are binary.
-    9, 8, // Enforce s1 is set to 1 when reading existing memory and 0 otherwise.
-    7, 6, 9, 8, // Constrain the values in the d inverse column.
+    3, 3, // Enforce that the memory selectors are binary.
+    7, 6, // Enforce s1 is set to 1 when reading existing memory and 0 otherwise.
+    5, 4, 7, 6, // Constrain the values in the d inverse column.
     8, // Enforce values in ctx, addr, clk transition correctly.
-    6, 6, 6, 6, // Enforce correct memory initialization when reading from new memory.
-    5, 5, 5, 5, // Enforce correct memory copy when reading from existing memory
+    4, 4, 4, 4, // Enforce correct memory initialization when reading from new memory.
+    3, 3, 3, 3, // Enforce correct memory copy when reading from existing memory
 ];
 
 // MEMORY TRANSITION CONSTRAINTS

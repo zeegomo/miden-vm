@@ -11,12 +11,12 @@ mod memory;
 // ================================================================================================
 /// The number of constraints on the management of the Chiplets module. This does not include
 /// constraints for the individual chiplet components.
-pub const NUM_CONSTRAINTS: usize = 6;
+pub const NUM_CONSTRAINTS: usize = 2;
 /// The degrees of constraints on the management of the Chiplets module. This does not include
 /// constraint degrees for the individual chiplet components.
 pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
-    2, 3, 4, // Selector flags must be binary.
-    2, 3, 4, // Selector flags can only change from 0 -> 1.
+    2, // Selector flags must be binary.
+    2, // Selector flags can only change from 0 -> 1.
 ];
 
 // PERIODIC COLUMNS
@@ -97,25 +97,13 @@ pub fn enforce_constraints<E: FieldElement<BaseField = Felt>>(
 fn enforce_selectors<E: FieldElement>(frame: &EvaluationFrame<E>, result: &mut [E]) {
     // --- Selector flags must be binary ----------------------------------------------------------
 
-    // Selector flag s0 must be binary for the entire trace.
-    result[0] = is_binary(frame.s(0));
-
-    // When s0 is set, selector s1 is binary.
-    result[1] = frame.s(0) * is_binary(frame.s(1));
-
     // When selectors s0 and s1 are set, s2 is binary.
-    result[2] = frame.s(0) * frame.s(1) * is_binary(frame.s(2));
+    result[0] = is_binary(frame.s(2));
 
     // --- Selector flags can only stay the same or change from 0 -> 1 ----------------------------
 
-    // Selector flag s0 must either be 0 in the current row or 1 in both rows.
-    result[3] = frame.s(0) * are_equal(frame.s(0), frame.s_next(0));
-
-    // When s0 is set, selector flag s1 must either be 0 in the current row or 1 in both rows.
-    result[4] = frame.s(0) * frame.s(1) * are_equal(frame.s(1), frame.s_next(1));
-
     // When selectors s0 and s1 are set, s2 must either be 0 in the current row or 1 in both rows.
-    result[5] = frame.s(0) * frame.s(1) * frame.s(2) * are_equal(frame.s(2), frame.s_next(2));
+    result[1] = frame.s(2) * are_equal(frame.s(2), frame.s_next(2));
 }
 
 // CHIPLETS FRAME EXTENSION TRAIT
