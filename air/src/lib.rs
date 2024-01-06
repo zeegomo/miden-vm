@@ -13,7 +13,7 @@ use winter_air::{
     ProofOptions as WinterProofOptions, TraceInfo, TransitionConstraintDegree,
 };
 
-mod constraints;
+pub mod constraints;
 pub use constraints::stack;
 use constraints::{chiplets, range};
 
