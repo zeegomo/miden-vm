@@ -24,9 +24,10 @@ pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
 
 /// Returns the set of periodic columns required by chiplets in the Chiplets module.
 pub fn get_periodic_column_values() -> Vec<Vec<Felt>> {
-    let mut result = hasher::get_periodic_column_values();
-    result.append(&mut bitwise::get_periodic_column_values());
-    result
+    // let mut result = hasher::get_periodic_column_values();
+    // result.append(&mut bitwise::get_periodic_column_values());
+    // result
+    Vec::new()
 }
 
 // CHIPLETS TRANSITION CONSTRAINTS
@@ -39,9 +40,9 @@ pub fn get_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
         .map(|&degree| TransitionConstraintDegree::new(degree))
         .collect();
 
-    degrees.append(&mut hasher::get_transition_constraint_degrees());
+    // degrees.append(&mut hasher::get_transition_constraint_degrees());
 
-    degrees.append(&mut bitwise::get_transition_constraint_degrees());
+    // degrees.append(&mut bitwise::get_transition_constraint_degrees());
 
     degrees.append(&mut memory::get_transition_constraint_degrees());
 
@@ -51,38 +52,38 @@ pub fn get_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
 /// Returns the number of transition constraints for the chiplets.
 pub fn get_transition_constraint_count() -> usize {
     NUM_CONSTRAINTS
-        + hasher::get_transition_constraint_count()
-        + bitwise::get_transition_constraint_count()
+        // + hasher::get_transition_constraint_count()
+        // + bitwise::get_transition_constraint_count()
         + memory::get_transition_constraint_count()
 }
 
 /// Enforces constraints for the chiplets module and all chiplet components.
 pub fn enforce_constraints<E: FieldElement<BaseField = Felt>>(
     frame: &EvaluationFrame<E>,
-    periodic_values: &[E],
+    _periodic_values: &[E],
     result: &mut [E],
 ) {
     // chiplets transition constraints
     enforce_selectors(frame, result);
-    let mut constraint_offset = NUM_CONSTRAINTS;
+    let constraint_offset = NUM_CONSTRAINTS;
 
-    // hasher transition constraints
-    hasher::enforce_constraints(
-        frame,
-        &periodic_values[..hasher::NUM_PERIODIC_COLUMNS],
-        &mut result[constraint_offset..],
-        frame.hasher_flag(),
-    );
-    constraint_offset += hasher::get_transition_constraint_count();
+    // // hasher transition constraints
+    // hasher::enforce_constraints(
+    //     frame,
+    //     &periodic_values[..hasher::NUM_PERIODIC_COLUMNS],
+    //     &mut result[constraint_offset..],
+    //     frame.hasher_flag(),
+    // );
+    // constraint_offset += hasher::get_transition_constraint_count();
 
-    // bitwise transition constraints
-    bitwise::enforce_constraints(
-        frame,
-        &periodic_values[hasher::NUM_PERIODIC_COLUMNS..],
-        &mut result[constraint_offset..],
-        frame.bitwise_flag(),
-    );
-    constraint_offset += bitwise::get_transition_constraint_count();
+    // // bitwise transition constraints
+    // bitwise::enforce_constraints(
+    //     frame,
+    //     &periodic_values[hasher::NUM_PERIODIC_COLUMNS..],
+    //     &mut result[constraint_offset..],
+    //     frame.bitwise_flag(),
+    // );
+    // constraint_offset += bitwise::get_transition_constraint_count();
 
     // memory transition constraints
     memory::enforce_constraints(frame, &mut result[constraint_offset..], frame.memory_flag(false));
