@@ -47,7 +47,7 @@ pub const RANGE_CHECK_TRACE_RANGE: Range<usize> =
     range(RANGE_CHECK_TRACE_OFFSET, RANGE_CHECK_TRACE_WIDTH);
 
 // Chiplets trace
-pub const CHIPLETS_OFFSET: usize = RANGE_CHECK_TRACE_RANGE.end;
+pub const CHIPLETS_OFFSET: usize = 161;
 pub const CHIPLETS_WIDTH: usize = 17;
 pub const CHIPLETS_RANGE: Range<usize> = range(CHIPLETS_OFFSET, CHIPLETS_WIDTH);
 
