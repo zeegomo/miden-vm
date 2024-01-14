@@ -105,7 +105,7 @@ pub struct RangeCheckTrace {
 
 pub struct ChipletsTrace {
     pub trace: [Vec<Felt>; CHIPLETS_WIDTH],
-    aux_builder: chiplets::AuxTraceBuilder,
+    pub aux_builder: chiplets::AuxTraceBuilder,
 }
 
 // EXECUTORS

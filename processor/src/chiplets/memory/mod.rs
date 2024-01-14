@@ -233,11 +233,13 @@ impl Memory {
                     let delta = if prev_ctx != ctx {
                         ctx - prev_ctx
                     } else if prev_addr != felt_addr {
+                        println!("changing addr to {felt_addr} from {prev_addr}");
                         felt_addr - prev_addr
                     } else {
-                        clk - prev_clk - ONE
+                        println!("addr: {addr} clk:{clk} - {prev_clk}");
+                        clk - prev_clk
                     };
-
+                    println!("{delta}");
                     let (delta_hi, delta_lo) = split_element_u32_into_u16(delta);
                     trace.set(row, D0_COL_IDX, delta_lo);
                     trace.set(row, D1_COL_IDX, delta_hi);
@@ -251,6 +253,11 @@ impl Memory {
                         Felt::from(addr),
                         clk,
                         value,
+                    );
+                    println!(
+                        "providing: {:?} at cycle {}",
+                        memory_lookup,
+                        (memory_start_row + row) as u32
                     );
                     chiplets_bus
                         .provide_memory_operation(memory_lookup, (memory_start_row + row) as u32);

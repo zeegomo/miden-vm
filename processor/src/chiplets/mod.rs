@@ -356,7 +356,6 @@ impl Chiplets {
         // send the memory read request to the bus
         let lookup = MemoryLookup::from_ints(MEMORY_READ_LABEL, ctx, addr, self.clk, value);
         self.bus.request_memory_operation(&[lookup], self.clk);
-
         value
     }
 
@@ -405,7 +404,6 @@ impl Chiplets {
         // send the memory write request to the bus
         let lookup = MemoryLookup::from_ints(MEMORY_WRITE_LABEL, ctx, addr, self.clk, new_word);
         self.bus.request_memory_operation(&[lookup], self.clk);
-
         old_word
     }
 

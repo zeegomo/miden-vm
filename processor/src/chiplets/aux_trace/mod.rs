@@ -35,9 +35,9 @@ impl AuxTraceBuilder {
         main_trace: &ColMatrix<Felt>,
         rand_elements: &[E],
     ) -> Vec<Vec<E>> {
-        let t_chip = self.table_builder.build_aux_column(main_trace, rand_elements);
+        // let t_chip = self.table_builder.build_aux_column(main_trace, rand_elements);
         let b_chip = self.bus_builder.build_aux_column(main_trace, rand_elements);
-        vec![t_chip, b_chip]
+        vec![b_chip]
     }
 }
 
@@ -118,10 +118,13 @@ impl AuxColumnBuilder<ChipletsBusRow, ChipletLookup, u32> for BusTraceBuilder {
             .responses
             .iter()
             .map(|response| response.to_value(main_trace, alphas))
-            .collect();
+            .collect::<Vec<_>>();
         // get the inverse values from the request rows
         let (_, inv_row_values) = build_lookup_table_row_values(&self.requests, main_trace, alphas);
-
+        println!("requests: {:?}\n responses: {:?}", self.requests, self.responses);
+        println!("{:?} \n {:?}", row_values, inv_row_values);
+        println!("{:?}", self.lookup_hints);
+        assert_eq!(row_values[0].inv(), inv_row_values[0]);
         (row_values, inv_row_values)
     }
 }

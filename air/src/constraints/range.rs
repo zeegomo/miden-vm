@@ -115,7 +115,7 @@ pub fn enforce_aux_constraints<F, E>(
     E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
 {
     // Get the first random element for this segment.
-    let alpha = aux_rand_elements.get_segment_elements(0)[0];
+    let alpha: E = aux_rand_elements.get_segment_elements(0)[0];
 
     // Enforce b_range.
     enforce_b_range(main_frame, aux_frame, alpha, result);

@@ -82,6 +82,10 @@ pub trait LookupTableRow {
     ) -> E;
 }
 
+// v1 v2 v3   v4
+// 1 v1 v1v2 v1v2v3 
+// 1/v1   1/v2    1/v3 1/v4
+
 /// Computes values as well as inverse value for all specified lookup table rows.
 ///
 /// To compute the inverses of row values we use a modified version of batch inversion algorithm.
@@ -158,6 +162,7 @@ pub trait AuxColumnBuilder<H: Clone, R: LookupTableRow, U: HintCycle> {
 
         // allocate memory for the running product column and set its initial value
         let mut result = unsafe { uninit_vector(main_trace.num_rows()) };
+        println!("main trace {}", main_trace.num_rows());
         result[0] = self.init_column_value(&row_values);
 
         // keep track of the last updated row in the running product column
@@ -194,6 +199,11 @@ pub trait AuxColumnBuilder<H: Clone, R: LookupTableRow, U: HintCycle> {
             result[(result_idx + 1)..].fill(last_value);
         }
 
+        println!("aux trace: {}", result.len());
+        for res in &result {
+            print!("{} ", res);
+        }
+        println!();
         result
     }
 

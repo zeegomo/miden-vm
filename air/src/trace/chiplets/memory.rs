@@ -4,7 +4,7 @@ use super::{create_range, Felt, Range, ONE, ZERO};
 // ================================================================================================
 
 /// Number of columns needed to record an execution trace of the memory chiplet.
-pub const TRACE_WIDTH: usize = 12;
+pub const TRACE_WIDTH: usize = 13;
 
 /// Number of selector columns in the trace.
 pub const NUM_SELECTORS: usize = 2;
@@ -56,3 +56,5 @@ pub const D1_COL_IDX: usize = D0_COL_IDX + 1;
 /// Column for the inverse of the delta between two consecutive context IDs, addresses, or clock
 /// cycles, used to enforce that changes are correctly constrained.
 pub const D_INV_COL_IDX: usize = D1_COL_IDX + 1;
+
+pub const BUS_COL_IDX: usize = 0;

@@ -2,6 +2,9 @@ use super::super::{
     EvaluationFrame, Felt, FieldElement, TransitionConstraintDegree, Vec, CHIPLETS_OFFSET,
 };
 use crate::utils::{are_equal, binary_not, is_binary};
+use vm_core::ExtensionOf;
+
+use winter_air::{Assertion, AuxTraceRandElements};
 
 mod bitwise;
 mod hasher;
@@ -11,12 +14,12 @@ mod memory;
 // ================================================================================================
 /// The number of constraints on the management of the Chiplets module. This does not include
 /// constraints for the individual chiplet components.
-pub const NUM_CONSTRAINTS: usize = 2;
+pub const NUM_CONSTRAINTS: usize = 0;
 /// The degrees of constraints on the management of the Chiplets module. This does not include
 /// constraint degrees for the individual chiplet components.
 pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
-    2, // Selector flags must be binary.
-    2, // Selector flags can only change from 0 -> 1.
+    // 2, // Selector flags must be binary.
+    // 2, // Selector flags can only change from 0 -> 1.
 ];
 
 // PERIODIC COLUMNS
@@ -28,6 +31,16 @@ pub fn get_periodic_column_values() -> Vec<Vec<Felt>> {
     // result.append(&mut bitwise::get_periodic_column_values());
     // result
     Vec::new()
+}
+
+/// Returns the range checker's boundary assertions for the main trace at the first step.
+pub fn get_aux_assertions_first_step<E: FieldElement>(result: &mut Vec<Assertion<E>>) {
+    memory::get_aux_assertions_first_step(result);
+}
+
+/// Returns the range checker's boundary assertions for the main trace at the last step.
+pub fn get_aux_assertions_last_step<E: FieldElement>(result: &mut Vec<Assertion<E>>, step: usize) {
+    memory::get_aux_assertions_last_step(result, step);
 }
 
 // CHIPLETS TRANSITION CONSTRAINTS
@@ -87,6 +100,25 @@ pub fn enforce_constraints<E: FieldElement<BaseField = Felt>>(
 
     // memory transition constraints
     memory::enforce_constraints(frame, &mut result[constraint_offset..], frame.memory_flag(false));
+}
+
+/// Returns the transition constraint degrees for the range checker's auxiliary columns, used for
+/// multiset checks.
+pub fn get_aux_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
+    memory::get_aux_transition_constraint_degrees()
+}
+
+/// Enforces constraints on the range checker's auxiliary columns.
+pub fn enforce_aux_constraints<F, E>(
+    main_frame: &EvaluationFrame<F>,
+    aux_frame: &EvaluationFrame<E>,
+    aux_rand_elements: &AuxTraceRandElements<E>,
+    result: &mut [E],
+) where
+    F: FieldElement<BaseField = Felt>,
+    E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
+{
+    memory::enforce_aux_constraints::<F, E>(main_frame, aux_frame, aux_rand_elements, result)
 }
 
 // TRANSITION CONSTRAINT HELPERS
