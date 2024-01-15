@@ -1,5 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-
+#![allow(dead_code)]
 #[cfg(not(feature = "std"))]
 #[macro_use]
 extern crate alloc;
@@ -13,7 +13,7 @@ use winter_air::{
     ProofOptions as WinterProofOptions, TraceInfo, TransitionConstraintDegree,
 };
 
-mod constraints;
+pub mod constraints;
 pub use constraints::stack;
 use constraints::{chiplets, range};
 

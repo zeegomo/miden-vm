@@ -56,3 +56,5 @@ pub const D1_COL_IDX: usize = D0_COL_IDX + 1;
 /// Column for the inverse of the delta between two consecutive context IDs, addresses, or clock
 /// cycles, used to enforce that changes are correctly constrained.
 pub const D_INV_COL_IDX: usize = D1_COL_IDX + 1;
+
+pub const BUS_COL_IDX: usize = 0;
