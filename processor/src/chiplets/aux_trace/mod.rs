@@ -39,6 +39,14 @@ impl AuxTraceBuilder {
         let b_chip = self.bus_builder.build_aux_column(main_trace, rand_elements);
         vec![b_chip]
     }
+
+    pub fn build_memory_aux_column<E: FieldElement<BaseField = Felt>>(
+        &self,
+        main_trace: &ColMatrix<Felt>,
+        rand_elements: &[E],
+    ) -> Vec<E> {
+        self.build_aux_columns(main_trace, rand_elements).remove(1)
+    }
 }
 
 // BUS TRACE BUILDER

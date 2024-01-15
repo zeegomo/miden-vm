@@ -3,7 +3,6 @@ use super::super::{
 };
 use crate::utils::{are_equal, binary_not, is_binary};
 use vm_core::ExtensionOf;
-
 use winter_air::{Assertion, AuxTraceRandElements};
 
 mod bitwise;
@@ -14,12 +13,12 @@ mod memory;
 // ================================================================================================
 /// The number of constraints on the management of the Chiplets module. This does not include
 /// constraints for the individual chiplet components.
-pub const NUM_CONSTRAINTS: usize = 0;
+pub const NUM_CONSTRAINTS: usize = 2;
 /// The degrees of constraints on the management of the Chiplets module. This does not include
 /// constraint degrees for the individual chiplet components.
 pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
-    // 2, // Selector flags must be binary.
-    // 2, // Selector flags can only change from 0 -> 1.
+    2, // Selector flags must be binary.
+    2, // Selector flags can only change from 0 -> 1.
 ];
 
 // PERIODIC COLUMNS
@@ -27,9 +26,6 @@ pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
 
 /// Returns the set of periodic columns required by chiplets in the Chiplets module.
 pub fn get_periodic_column_values() -> Vec<Vec<Felt>> {
-    // let mut result = hasher::get_periodic_column_values();
-    // result.append(&mut bitwise::get_periodic_column_values());
-    // result
     Vec::new()
 }
 
@@ -52,11 +48,6 @@ pub fn get_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
         .iter()
         .map(|&degree| TransitionConstraintDegree::new(degree))
         .collect();
-
-    // degrees.append(&mut hasher::get_transition_constraint_degrees());
-
-    // degrees.append(&mut bitwise::get_transition_constraint_degrees());
-
     degrees.append(&mut memory::get_transition_constraint_degrees());
 
     degrees
@@ -64,10 +55,7 @@ pub fn get_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
 
 /// Returns the number of transition constraints for the chiplets.
 pub fn get_transition_constraint_count() -> usize {
-    NUM_CONSTRAINTS
-        // + hasher::get_transition_constraint_count()
-        // + bitwise::get_transition_constraint_count()
-        + memory::get_transition_constraint_count()
+    NUM_CONSTRAINTS + memory::get_transition_constraint_count()
 }
 
 /// Enforces constraints for the chiplets module and all chiplet components.
@@ -79,25 +67,6 @@ pub fn enforce_constraints<E: FieldElement<BaseField = Felt>>(
     // chiplets transition constraints
     enforce_selectors(frame, result);
     let constraint_offset = NUM_CONSTRAINTS;
-
-    // // hasher transition constraints
-    // hasher::enforce_constraints(
-    //     frame,
-    //     &periodic_values[..hasher::NUM_PERIODIC_COLUMNS],
-    //     &mut result[constraint_offset..],
-    //     frame.hasher_flag(),
-    // );
-    // constraint_offset += hasher::get_transition_constraint_count();
-
-    // // bitwise transition constraints
-    // bitwise::enforce_constraints(
-    //     frame,
-    //     &periodic_values[hasher::NUM_PERIODIC_COLUMNS..],
-    //     &mut result[constraint_offset..],
-    //     frame.bitwise_flag(),
-    // );
-    // constraint_offset += bitwise::get_transition_constraint_count();
-
     // memory transition constraints
     memory::enforce_constraints(frame, &mut result[constraint_offset..], frame.memory_flag(false));
 }
@@ -128,12 +97,9 @@ pub fn enforce_aux_constraints<F, E>(
 /// binary during the portion of the trace when they're being used as selectors.
 fn enforce_selectors<E: FieldElement>(frame: &EvaluationFrame<E>, result: &mut [E]) {
     // --- Selector flags must be binary ----------------------------------------------------------
-
     // When selectors s0 and s1 are set, s2 is binary.
     result[0] = is_binary(frame.s(2));
-
     // --- Selector flags can only stay the same or change from 0 -> 1 ----------------------------
-
     // When selectors s0 and s1 are set, s2 must either be 0 in the current row or 1 in both rows.
     result[1] = frame.s(2) * are_equal(frame.s(2), frame.s_next(2));
 }

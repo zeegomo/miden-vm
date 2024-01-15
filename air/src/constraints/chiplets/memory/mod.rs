@@ -31,7 +31,7 @@ pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
 
 pub const NUM_AUX_CONSTRAINTS: usize = 1;
 
-pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [4];
+pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [3];
 
 // MEMORY TRANSITION CONSTRAINTS
 // ================================================================================================
@@ -49,13 +49,13 @@ pub fn get_transition_constraint_count() -> usize {
     NUM_CONSTRAINTS
 }
 
-/// Returns the range checker's boundary assertions for the main trace at the first step.
+/// Returns memory's boundary assertions for the main trace at the first step.
 pub fn get_aux_assertions_first_step<E: FieldElement>(result: &mut Vec<Assertion<E>>) {
     let step = 0;
     result.push(Assertion::single(MEMORY_BUS_COL_IDX, step, E::ONE));
 }
 
-/// Returns the range checker's boundary assertions for the main trace at the last step.
+/// Returns memory's boundary assertions for the main trace at the last step.
 pub fn get_aux_assertions_last_step<E: FieldElement>(result: &mut Vec<Assertion<E>>, step: usize) {
     result.push(Assertion::single(MEMORY_BUS_COL_IDX, step, E::ONE));
 }
@@ -81,8 +81,7 @@ pub fn enforce_constraints<E: FieldElement>(
 
 // --- AUXILIARY COLUMNS (FOR MULTISET CHECKS) ----------------------------------------------------
 
-/// Returns the transition constraint degrees for the range checker's auxiliary columns, used for
-/// multiset checks.
+/// Returns the transition constraint degrees for the memory's auxiliary columns
 pub fn get_aux_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
     AUX_CONSTRAINT_DEGREES
         .iter()
@@ -90,7 +89,7 @@ pub fn get_aux_transition_constraint_degrees() -> Vec<TransitionConstraintDegree
         .collect()
 }
 
-/// Enforces constraints on the range checker's auxiliary columns.
+/// Enforces constraints on the memory's auxiliary columns.
 pub fn enforce_aux_constraints<F, E>(
     main_frame: &EvaluationFrame<F>,
     aux_frame: &EvaluationFrame<E>,
@@ -117,15 +116,13 @@ fn enforce_b_memory<E, F>(
     E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
 {
     let pc_lookup = main_frame.lookup_pc(alphas);
-    let is_pc_lookup = main_frame.current()[201];
-
-    // assert_ne!(is_pc_lookup, F::ZERO);
-    // assert_ne!(is_pc_lookup, F::ONE);
+    let is_pc_lookup = main_frame.current()[trace_defs::READING_PC];
 
     let pc_lookup_2 = E::from(is_pc_lookup) * pc_lookup + (E::ONE - is_pc_lookup.into());
-    // let mem_loop = main_frame.lookup_mem(alphas);
+    // TODO: add other memory requests
 
     let mem_response = main_frame.mem_response(alphas);
+    // FIX: what if there are more responses?
     let is_mem_response = is_pc_lookup;
     let mem_response_2 =
         E::from(is_mem_response) * mem_response + (E::ONE - is_mem_response.into());
@@ -133,7 +130,7 @@ fn enforce_b_memory<E, F>(
     result[0] = are_equal(
         aux_frame.next()[MEMORY_BUS_COL_IDX] * pc_lookup_2,
         aux_frame.current()[MEMORY_BUS_COL_IDX] * mem_response_2,
-    ) * is_pc_lookup.into();
+    );
 }
 
 // TRANSITION CONSTRAINT HELPERS
@@ -179,9 +176,6 @@ fn enforce_d_inv<E: FieldElement>(
     memory_flag: E,
 ) -> usize {
     let constraint_count = 2;
-
-    // result.agg_constraint(0, memory_flag, is_binary(frame.n0()));
-    // result.agg_constraint(1, memory_flag * frame.not_n0(), frame.ctx_change());
     result.agg_constraint(0, memory_flag, is_binary(frame.n1()));
     result.agg_constraint(1, memory_flag * frame.reaccess_flag(), frame.addr_change());
 
@@ -197,10 +191,7 @@ fn enforce_delta<E: FieldElement>(
 ) -> usize {
     let constraint_count = 1;
 
-    // If the context changed, include the difference.
-    // result.agg_constraint(0, memory_flag * frame.n0(), frame.ctx_change());
-    // If the context is the same, include the address difference if it changed or else include the
-    // clock change.
+    // Include the address difference if it changed or else include the clock change.
     result.agg_constraint(
         0,
         memory_flag,

@@ -1,9 +1,9 @@
 use super::{EvaluationFrame, ExtensionOf, Felt, FieldElement};
 use crate::trace::{
     chiplets::{
-        memory::{ADDR_COL_IDX, MEMORY_READ_LABEL, MEMORY_WRITE_LABEL, V_COL_RANGE},
-        MEMORY_ADDR_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX, MEMORY_D0_COL_IDX,
-        MEMORY_D1_COL_IDX, MEMORY_SELECTORS_COL_IDX, MEMORY_V_COL_RANGE,
+        memory::{MEMORY_READ_LABEL, MEMORY_WRITE_LABEL},
+        MEMORY_ADDR_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX,
+        MEMORY_SELECTORS_COL_IDX, MEMORY_V_COL_RANGE,
     },
     decoder::{DECODER_OP_BITS_OFFSET, DECODER_USER_OP_HELPERS_OFFSET},
     CHIPLETS_OFFSET, CLK_COL_IDX,
@@ -117,10 +117,10 @@ where
 
     #[inline(always)]
     fn lookup_pc(&self, alphas: &[E]) -> E {
-        let pc = self.current()[32];
-        let clk = self.current()[191];
-        let word = [self.current()[199], F::ZERO, F::ZERO, F::ZERO];
-        let is_write = self.current()[200];
+        let pc = self.current()[trace_defs::PC];
+        let clk = self.current()[trace_defs::CYCLE];
+        let word = [self.current()[trace_defs::PC_CONTENTS], F::ZERO, F::ZERO, F::ZERO];
+        let is_write = self.current()[trace_defs::LOADING];
         let label = F::from(MEMORY_WRITE_LABEL) * is_write
             + F::from(MEMORY_READ_LABEL) * (F::ONE - is_write);
         let lookup = MemoryLookup::new(label, F::ZERO, pc, clk, word);
