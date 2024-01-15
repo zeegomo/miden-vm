@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+// #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(not(feature = "std"))]
 #[macro_use]
@@ -13,7 +13,7 @@ use winter_air::{
     ProofOptions as WinterProofOptions, TraceInfo, TransitionConstraintDegree,
 };
 
-mod constraints;
+pub mod constraints;
 pub use constraints::stack;
 use constraints::{chiplets, range};
 

@@ -109,3 +109,5 @@ pub const MEMORY_D1_COL_IDX: usize = MEMORY_TRACE_OFFSET + memory::D1_COL_IDX;
 /// memory context IDs, addresses, or clock cycles, used to enforce that changes are correctly
 /// constrained.
 pub const MEMORY_D_INV_COL_IDX: usize = MEMORY_TRACE_OFFSET + memory::D_INV_COL_IDX;
+
+pub const MEMORY_BUS_COL_IDX: usize = memory::BUS_COL_IDX;

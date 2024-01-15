@@ -237,7 +237,6 @@ impl Memory {
                     } else {
                         clk - prev_clk - ONE
                     };
-
                     let (delta_hi, delta_lo) = split_element_u32_into_u16(delta);
                     trace.set(row, D0_COL_IDX, delta_lo);
                     trace.set(row, D1_COL_IDX, delta_hi);

@@ -10,20 +10,20 @@ use miden_air::trace::chiplets::{
 };
 use vm_core::{code_blocks::OpBatch, Kernel};
 
-mod bitwise;
+pub mod bitwise;
 use bitwise::{Bitwise, BitwiseLookup};
 
-mod hasher;
+pub mod hasher;
 pub use hasher::init_state_from_words;
 use hasher::Hasher;
 
-mod memory;
+pub mod memory;
 use memory::{Memory, MemoryLookup};
 
 mod kernel_rom;
 use kernel_rom::{KernelProcLookup, KernelRom};
 
-mod aux_trace;
+pub mod aux_trace;
 #[cfg(test)]
 pub(crate) use aux_trace::ChipletsVTableRow;
 pub(crate) use aux_trace::{AuxTraceBuilder, ChipletsBus, ChipletsVTableTraceBuilder};
@@ -356,7 +356,6 @@ impl Chiplets {
         // send the memory read request to the bus
         let lookup = MemoryLookup::from_ints(MEMORY_READ_LABEL, ctx, addr, self.clk, value);
         self.bus.request_memory_operation(&[lookup], self.clk);
-
         value
     }
 
@@ -405,7 +404,6 @@ impl Chiplets {
         // send the memory write request to the bus
         let lookup = MemoryLookup::from_ints(MEMORY_WRITE_LABEL, ctx, addr, self.clk, new_word);
         self.bus.request_memory_operation(&[lookup], self.clk);
-
         old_word
     }
 

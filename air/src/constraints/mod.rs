@@ -1,7 +1,12 @@
 use super::{EvaluationFrame, ExtensionOf, Felt, FieldElement};
 use crate::trace::{
-    chiplets::{MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX},
+    chiplets::{
+        memory::{ADDR_COL_IDX, MEMORY_READ_LABEL, MEMORY_WRITE_LABEL, V_COL_RANGE},
+        MEMORY_ADDR_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX, MEMORY_D0_COL_IDX,
+        MEMORY_D1_COL_IDX, MEMORY_SELECTORS_COL_IDX, MEMORY_V_COL_RANGE,
+    },
     decoder::{DECODER_OP_BITS_OFFSET, DECODER_USER_OP_HELPERS_OFFSET},
+    CHIPLETS_OFFSET, CLK_COL_IDX,
 };
 use crate::utils::binary_not;
 
@@ -55,6 +60,12 @@ where
     /// (alpha - h3). The value h3 which is being range checked by the stack operation is stored in
     /// the helper columns of the decoder section of the trace.
     fn lookup_sv3(&self, alpha: E) -> E;
+
+    fn lookup_pc(&self, alphas: &[E]) -> E;
+
+    fn lookup_mem(&self, alphas: &[E]) -> E;
+
+    fn mem_response(&self, alphas: &[E]) -> E;
 }
 
 impl<F, E> MainFrameExt<F, E> for EvaluationFrame<F>
@@ -102,5 +113,79 @@ where
     #[inline(always)]
     fn lookup_sv3(&self, alpha: E) -> E {
         alpha - self.current()[DECODER_USER_OP_HELPERS_OFFSET + 3].into()
+    }
+
+    #[inline(always)]
+    fn lookup_pc(&self, alphas: &[E]) -> E {
+        let pc = self.current()[32];
+        let clk = self.current()[191];
+        let word = [self.current()[199], F::ZERO, F::ZERO, F::ZERO];
+        let is_write = self.current()[200];
+        let label = F::from(MEMORY_WRITE_LABEL) * is_write
+            + F::from(MEMORY_READ_LABEL) * (F::ONE - is_write);
+        let lookup = MemoryLookup::new(label, F::ZERO, pc, clk, word);
+        lookup.to_value(alphas)
+    }
+
+    #[inline(always)]
+    fn lookup_mem(&self, alphas: &[E]) -> E {
+        todo!()
+    }
+
+    #[inline(always)]
+    fn mem_response(&self, alphas: &[E]) -> E {
+        let addr = self.current()[MEMORY_ADDR_COL_IDX];
+        let clk = self.current()[MEMORY_CLK_COL_IDX];
+        let ctx = F::ZERO;
+        let word = self.current()[MEMORY_V_COL_RANGE.start];
+        let word = [word, F::ZERO, F::ZERO, F::ZERO];
+        let label = self.current()[MEMORY_SELECTORS_COL_IDX] * F::from(MEMORY_READ_LABEL)
+            + F::from(MEMORY_WRITE_LABEL) * (F::ONE - self.current()[MEMORY_SELECTORS_COL_IDX]);
+        let lookup = MemoryLookup::new(label, ctx, addr, clk, word);
+        lookup.to_value(alphas)
+    }
+}
+
+type Word<F> = [F; 4];
+
+/// Contains the data required to describe a memory read or write.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct MemoryLookup<E> {
+    // unique label identifying the memory operation
+    label: E,
+    ctx: E,
+    addr: E,
+    clk: E,
+    word: Word<E>,
+}
+
+impl<E> MemoryLookup<E> {
+    pub fn new(label: E, ctx: E, addr: E, clk: E, word: Word<E>) -> Self {
+        Self {
+            label,
+            ctx,
+            addr,
+            clk,
+            word,
+        }
+    }
+}
+
+impl<F: FieldElement> MemoryLookup<F> {
+    /// Reduces this row to a single field element in the field specified by E. This requires
+    /// at least 9 alpha values.
+    fn to_value<E: FieldElement + ExtensionOf<F>>(&self, alphas: &[E]) -> E {
+        let word_value = self
+            .word
+            .iter()
+            .enumerate()
+            .fold(E::ZERO, |acc, (j, element)| acc + alphas[j + 5].mul_base(*element));
+
+        alphas[0]
+            + alphas[1].mul_base(self.label)
+            + alphas[2].mul_base(self.ctx)
+            + alphas[3].mul_base(self.addr)
+            + alphas[4].mul_base(self.clk)
+            + word_value
     }
 }
