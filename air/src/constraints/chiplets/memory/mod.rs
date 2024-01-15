@@ -31,7 +31,7 @@ pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
 
 pub const NUM_AUX_CONSTRAINTS: usize = 1;
 
-pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [3];
+pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [4];
 
 // MEMORY TRANSITION CONSTRAINTS
 // ================================================================================================
@@ -130,7 +130,7 @@ fn enforce_b_memory<E, F>(
     result[0] = are_equal(
         aux_frame.next()[MEMORY_BUS_COL_IDX] * pc_lookup_2,
         aux_frame.current()[MEMORY_BUS_COL_IDX] * mem_response_2,
-    );
+    ) * is_pc_lookup.into();
 }
 
 // TRANSITION CONSTRAINT HELPERS
