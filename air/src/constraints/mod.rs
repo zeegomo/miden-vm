@@ -118,7 +118,7 @@ where
     fn lookup_pc(&self, alphas: &[E]) -> E {
         let pc = self.current()[trace_defs::PC];
         let clk = self.current()[trace_defs::CYCLE];
-        let word = [self.current()[trace_defs::PC_CONTENTS], F::ZERO, F::ZERO, F::ZERO];
+        let word = [self.current()[trace_defs::INSN], F::ZERO, F::ZERO, F::ZERO];
         let is_write = self.current()[trace_defs::LOADING];
         let label = F::from(MEMORY_WRITE_LABEL) * is_write
             + F::from(MEMORY_READ_LABEL) * (F::ONE - is_write);
