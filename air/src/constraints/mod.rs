@@ -127,7 +127,7 @@ where
     }
 
     #[inline(always)]
-    fn lookup_mem(&self, alphas: &[E]) -> E {
+    fn lookup_mem(&self, _alphas: &[E]) -> E {
         todo!()
     }
 
