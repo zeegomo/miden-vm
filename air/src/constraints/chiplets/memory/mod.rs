@@ -116,7 +116,8 @@ fn enforce_b_memory<E, F>(
     E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
 {
     let pc_lookup = main_frame.lookup_pc(alphas);
-    let is_pc_lookup = main_frame.current()[trace_defs::READING_PC];
+    let is_pc_lookup =
+        main_frame.current()[trace_defs::LOADING] + main_frame.current()[trace_defs::BODY];
 
     let pc_lookup_2 = E::from(is_pc_lookup) * pc_lookup + (E::ONE - is_pc_lookup.into());
     // TODO: add other memory requests
