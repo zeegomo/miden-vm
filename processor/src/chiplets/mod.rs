@@ -17,13 +17,13 @@ mod hasher;
 pub use hasher::init_state_from_words;
 use hasher::Hasher;
 
-mod memory;
+pub mod memory;
 use memory::{Memory, MemoryLookup};
 
 mod kernel_rom;
 use kernel_rom::{KernelProcLookup, KernelRom};
 
-mod aux_trace;
+pub mod aux_trace;
 #[cfg(test)]
 pub(crate) use aux_trace::ChipletsVTableRow;
 pub(crate) use aux_trace::{AuxTraceBuilder, ChipletsBus, ChipletsVTableTraceBuilder};
@@ -349,13 +349,13 @@ impl Chiplets {
     ///
     /// If the specified address hasn't been previously written to, four ZERO elements are
     /// returned. This effectively implies that memory is initialized to ZERO.
-    pub fn read_mem(&mut self, ctx: u32, addr: u32) -> Word {
+    pub fn read_mem(&mut self, ctx: u32, addr: u32, cpu_cycle: u32) -> Word {
         // read the word from memory
         let value = self.memory.read(ctx, addr, self.clk);
 
         // send the memory read request to the bus
         let lookup = MemoryLookup::from_ints(MEMORY_READ_LABEL, ctx, addr, self.clk, value);
-        self.bus.request_memory_operation(&[lookup], self.clk);
+        self.bus.request_memory_operation(&[lookup], cpu_cycle);
 
         value
     }
@@ -396,7 +396,7 @@ impl Chiplets {
     /// elements of the word previously stored at that address unchanged.
     ///
     /// This also modifies the memory access trace and sends a memory lookup request to the bus.
-    pub fn write_mem_element(&mut self, ctx: u32, addr: u32, value: Felt) -> Word {
+    pub fn write_mem_element(&mut self, ctx: u32, addr: u32, value: Felt, cpu_cycle: u32) -> Word {
         let old_word = self.memory.get_old_value(ctx, addr);
         let new_word = [value, old_word[1], old_word[2], old_word[3]];
 
@@ -404,7 +404,7 @@ impl Chiplets {
 
         // send the memory write request to the bus
         let lookup = MemoryLookup::from_ints(MEMORY_WRITE_LABEL, ctx, addr, self.clk, new_word);
-        self.bus.request_memory_operation(&[lookup], self.clk);
+        self.bus.request_memory_operation(&[lookup], cpu_cycle);
 
         old_word
     }

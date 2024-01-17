@@ -210,6 +210,7 @@ impl Memory {
         let mut row = 0;
 
         for (ctx, segment) in self.trace {
+            println!("ctx: {ctx}");
             let ctx = Felt::from(ctx);
             for (addr, addr_trace) in segment.into_inner() {
                 // when we start a new address, we set the previous value to all zeros. the effect of

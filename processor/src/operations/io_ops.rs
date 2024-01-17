@@ -38,7 +38,7 @@ where
         // get the address from the stack and read the word from current memory context
         let ctx = self.system.ctx();
         let addr = Self::get_valid_address(self.stack.get(0))?;
-        let word = self.chiplets.read_mem(ctx, addr);
+        let word = self.chiplets.read_mem(ctx, addr, self.system.clk());
 
         // reverse the order of the memory word & update the stack state
         for (i, &value) in word.iter().rev().enumerate() {
@@ -65,7 +65,7 @@ where
         // get the address from the stack and read the word from memory
         let ctx = self.system.ctx();
         let addr = Self::get_valid_address(self.stack.get(0))?;
-        let mut word = self.chiplets.read_mem(ctx, addr);
+        let mut word = self.chiplets.read_mem(ctx, addr, self.system.clk());
         // put the retrieved word into stack order
         word.reverse();
 
@@ -165,7 +165,7 @@ where
         let value = self.stack.get(1);
 
         // write the value to the memory and get the previous word
-        let mut old_word = self.chiplets.write_mem_element(ctx, addr, value);
+        let mut old_word = self.chiplets.write_mem_element(ctx, addr, value, self.system.clk());
         // put the retrieved word into stack order
         old_word.reverse();
 

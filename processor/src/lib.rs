@@ -47,7 +47,7 @@ pub use host::{
     DefaultHost, Host,
 };
 
-mod chiplets;
+pub mod chiplets;
 use chiplets::Chiplets;
 
 mod trace;
@@ -104,8 +104,8 @@ pub struct RangeCheckTrace {
 }
 
 pub struct ChipletsTrace {
-    trace: [Vec<Felt>; CHIPLETS_WIDTH],
-    aux_builder: chiplets::AuxTraceBuilder,
+    pub trace: [Vec<Felt>; CHIPLETS_WIDTH],
+    pub aux_builder: chiplets::AuxTraceBuilder,
 }
 
 // EXECUTORS

@@ -1,11 +1,14 @@
 use super::{EvaluationFrame, FieldElement, Vec};
+use crate::constraints::MainFrameExt;
 use crate::trace::chiplets::{
-    memory::NUM_ELEMENTS, MEMORY_ADDR_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX,
+    MEMORY_ADDR_COL_IDX, MEMORY_BUS_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX,
     MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX, MEMORY_D_INV_COL_IDX, MEMORY_TRACE_OFFSET,
     MEMORY_V_COL_RANGE,
 };
-use crate::utils::{binary_not, is_binary, EvaluationResult};
-use winter_air::TransitionConstraintDegree;
+use crate::utils::{are_equal, binary_not, is_binary, EvaluationResult};
+use crate::Felt;
+use vm_core::ExtensionOf;
+use winter_air::{Assertion, AuxTraceRandElements, TransitionConstraintDegree};
 
 #[cfg(test)]
 mod tests;
@@ -14,17 +17,21 @@ mod tests;
 // ================================================================================================
 
 /// The number of constraints on the management of the memory chiplet.
-pub const NUM_CONSTRAINTS: usize = 17;
+pub const NUM_CONSTRAINTS: usize = 11;
 /// The degrees of constraints on the management of the memory chiplet. All constraint degrees are
 /// increased by 3 due to the selectors for the memory chiplet.
 pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
-    5, 5, // Enforce that the memory selectors are binary.
-    9, 8, // Enforce s1 is set to 1 when reading existing memory and 0 otherwise.
-    7, 6, 9, 8, // Constrain the values in the d inverse column.
-    8, // Enforce values in ctx, addr, clk transition correctly.
-    6, 6, 6, 6, // Enforce correct memory initialization when reading from new memory.
-    5, 5, 5, 5, // Enforce correct memory copy when reading from existing memory
+    3, 3, // Enforce that the memory selectors are binary.
+    7, 6, // Enforce s1 is set to 1 when reading existing memory and 0 otherwise.
+    5, 4, 7, 6, // Constrain the values in the d inverse column.
+    6, // Enforce values in ctx, addr, clk transition correctly.
+    4, // Enforce correct memory initialization when reading from new memory.
+    3, // Enforce correct memory copy when reading from existing memory
 ];
+
+pub const NUM_AUX_CONSTRAINTS: usize = 1;
+
+pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [4];
 
 // MEMORY TRANSITION CONSTRAINTS
 // ================================================================================================
@@ -40,6 +47,17 @@ pub fn get_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
 /// Returns the number of transition constraints for the memory chiplet.
 pub fn get_transition_constraint_count() -> usize {
     NUM_CONSTRAINTS
+}
+
+/// Returns memory's boundary assertions for the main trace at the first step.
+pub fn get_aux_assertions_first_step<E: FieldElement>(result: &mut Vec<Assertion<E>>) {
+    let step = 0;
+    result.push(Assertion::single(MEMORY_BUS_COL_IDX, step, E::ONE));
+}
+
+/// Returns memory's boundary assertions for the main trace at the last step.
+pub fn get_aux_assertions_last_step<E: FieldElement>(result: &mut Vec<Assertion<E>>, step: usize) {
+    result.push(Assertion::single(MEMORY_BUS_COL_IDX, step, E::ONE));
 }
 
 /// Enforces constraints for the memory chiplet.
@@ -61,6 +79,71 @@ pub fn enforce_constraints<E: FieldElement>(
     enforce_values(frame, &mut result[index..], memory_flag);
 }
 
+// --- AUXILIARY COLUMNS (FOR MULTISET CHECKS) ----------------------------------------------------
+
+/// Returns the transition constraint degrees for the memory's auxiliary columns
+pub fn get_aux_transition_constraint_degrees() -> Vec<TransitionConstraintDegree> {
+    AUX_CONSTRAINT_DEGREES
+        .iter()
+        .map(|&degree| TransitionConstraintDegree::new(degree))
+        .collect()
+}
+
+/// Enforces constraints on the memory's auxiliary columns.
+pub fn enforce_aux_constraints<F, E>(
+    main_frame: &EvaluationFrame<F>,
+    aux_frame: &EvaluationFrame<E>,
+    aux_rand_elements: &AuxTraceRandElements<E>,
+    result: &mut [E],
+) where
+    F: FieldElement<BaseField = Felt>,
+    E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
+{
+    // Get the first random element for this segment.
+    let alphas = aux_rand_elements.get_segment_elements(0);
+
+    // Enforce b_range.
+    enforce_b_memory(main_frame, aux_frame, alphas, result);
+}
+
+fn enforce_b_memory<E, F>(
+    main_frame: &EvaluationFrame<F>,
+    aux_frame: &EvaluationFrame<E>,
+    alphas: &[E],
+    result: &mut [E],
+) where
+    F: FieldElement<BaseField = Felt>,
+    E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
+{
+    let pc_lookup = main_frame.lookup_pc(alphas);
+    let is_pc_lookup =
+        main_frame.current()[trace_defs::LOADING] + main_frame.current()[trace_defs::BODY];
+
+    let pc_lookup_2 = E::from(is_pc_lookup) * pc_lookup + (E::ONE - is_pc_lookup.into());
+    // TODO: add other memory requests
+
+    let body = main_frame.current()[trace_defs::BODY];
+    let rd_store = main_frame.rd_store(alphas);
+    let rd_store_2 = E::from(body) * rd_store + (E::ONE - body.into());
+
+    let rs1_load = main_frame.rs1_load(alphas);
+    let rs1_load_2 = E::from(body) * rs1_load + (E::ONE - body.into());
+
+    let rs2_load = main_frame.rs2_load(alphas);
+    let rs2_load_2 = E::from(body) * rs2_load + (E::ONE - body.into());
+
+    let mem_response = main_frame.mem_response(alphas);
+    // FIX: what if there are more responses?
+    let is_mem_response = is_pc_lookup;
+    let mem_response_2 =
+        E::from(is_mem_response) * mem_response + (E::ONE - is_mem_response.into());
+
+    result[0] = are_equal(
+        aux_frame.next()[MEMORY_BUS_COL_IDX] * pc_lookup_2 * rd_store_2 * rs1_load_2 * rs2_load_2,
+        aux_frame.current()[MEMORY_BUS_COL_IDX] * mem_response_2,
+    ) * is_pc_lookup.into();
+}
+
 // TRANSITION CONSTRAINT HELPERS
 // ================================================================================================
 
@@ -76,7 +159,7 @@ fn enforce_selectors<E: FieldElement>(
     index += 1;
     result[index] = memory_flag * is_binary(frame.selector(1));
     index += 1;
-
+    assert_eq!(frame.n0(), E::ZERO);
     // s1 is set to 1 when existing memory is being read. this happens when ctx and addr haven't
     // changed, and the next operation is a read (s0 is set).
     result[index] = memory_flag
@@ -147,13 +230,13 @@ fn enforce_values<E: FieldElement>(
     let mut index = 0;
 
     // initialize memory to zero when reading from new context and address pair.
-    for i in 0..NUM_ELEMENTS {
+    for i in 0..1 {
         result[index] = memory_flag * frame.init_read_flag() * frame.v(i);
         index += 1;
     }
 
     // copy previous values when reading memory that was previously accessed.
-    for i in 0..NUM_ELEMENTS {
+    for i in 0..1 {
         result[index] = memory_flag * frame.copy_read_flag() * (frame.v_next(i) - frame.v(i));
         index += 1;
     }

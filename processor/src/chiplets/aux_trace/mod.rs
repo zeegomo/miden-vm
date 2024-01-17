@@ -3,7 +3,7 @@ use super::{
     BTreeMap, ColMatrix, Felt, FieldElement, StarkField, Vec, Word,
 };
 
-mod bus;
+pub mod bus;
 pub(crate) use bus::{ChipletLookup, ChipletsBus, ChipletsBusRow};
 
 mod virtual_table;
@@ -38,6 +38,14 @@ impl AuxTraceBuilder {
         let t_chip = self.table_builder.build_aux_column(main_trace, rand_elements);
         let b_chip = self.bus_builder.build_aux_column(main_trace, rand_elements);
         vec![t_chip, b_chip]
+    }
+
+    pub fn build_memory_aux_column<E: FieldElement<BaseField = Felt>>(
+        &self,
+        main_trace: &ColMatrix<Felt>,
+        rand_elements: &[E],
+    ) -> Vec<E> {
+        self.build_aux_columns(main_trace, rand_elements).remove(1)
     }
 }
 
