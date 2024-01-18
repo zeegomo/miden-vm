@@ -2,8 +2,8 @@ use super::{EvaluationFrame, ExtensionOf, Felt, FieldElement};
 use crate::trace::{
     chiplets::{
         memory::{MEMORY_READ_LABEL, MEMORY_WRITE_LABEL},
-        MEMORY_ADDR_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX,
-        MEMORY_SELECTORS_COL_IDX, MEMORY_V_COL_RANGE,
+        MEMORY_ADDR_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX, MEMORY_D0_COL_IDX,
+        MEMORY_D1_COL_IDX, MEMORY_SELECTORS_COL_IDX, MEMORY_V_COL_RANGE,
     },
     decoder::{DECODER_OP_BITS_OFFSET, DECODER_USER_OP_HELPERS_OFFSET},
 };
@@ -121,9 +121,9 @@ where
     }
 
     fn rd_store(&self, alphas: &[E]) -> E {
-        let clk = self.current()[trace_defs::CYCLE] * F::from(4u32);
+        let clk = self.current()[trace_defs::CYCLE] * F::from(4u32) + F::from(2u32);
         let addr = get_rd(self.current());
-        let val = get_rd_val(self.current());
+        let val = get_rd_val(self.next());
         MemoryLookup::new(
             F::from(MEMORY_WRITE_LABEL),
             F::ONE,
@@ -135,7 +135,7 @@ where
     }
 
     fn rs1_load(&self, alphas: &[E]) -> E {
-        let clk = self.current()[trace_defs::CYCLE] * F::from(4u32) + F::ONE;
+        let clk = self.current()[trace_defs::CYCLE] * F::from(4u32);
         let addr = get_rs1(self.current());
         let val = get_rs1_val(self.current());
         MemoryLookup::new(
@@ -149,7 +149,7 @@ where
     }
 
     fn rs2_load(&self, alphas: &[E]) -> E {
-        let clk = self.current()[trace_defs::CYCLE] * F::from(4u32) + F::ONE + F::ONE;
+        let clk = self.current()[trace_defs::CYCLE] * F::from(4u32) + F::ONE;
         let addr = get_rs2(self.current());
         let val = get_rs2_val(self.current());
         MemoryLookup::new(
@@ -183,7 +183,7 @@ where
     fn mem_response(&self, alphas: &[E]) -> E {
         let addr = self.current()[MEMORY_ADDR_COL_IDX];
         let clk = self.current()[MEMORY_CLK_COL_IDX];
-        let ctx = F::ZERO;
+        let ctx = self.current()[MEMORY_CTX_COL_IDX];
         let word = self.current()[MEMORY_V_COL_RANGE.start];
         let word = [word, F::ZERO, F::ZERO, F::ZERO];
         let label = self.current()[MEMORY_SELECTORS_COL_IDX] * F::from(MEMORY_READ_LABEL)

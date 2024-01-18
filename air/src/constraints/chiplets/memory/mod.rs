@@ -31,7 +31,7 @@ pub const CONSTRAINT_DEGREES: [usize; NUM_CONSTRAINTS] = [
 
 pub const NUM_AUX_CONSTRAINTS: usize = 1;
 
-pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [4];
+pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [11];
 
 // MEMORY TRANSITION CONSTRAINTS
 // ================================================================================================
@@ -116,16 +116,20 @@ fn enforce_b_memory<E, F>(
     E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
 {
     let pc_lookup = main_frame.lookup_pc(alphas);
-    let is_pc_lookup =
-        main_frame.current()[trace_defs::LOADING] + main_frame.current()[trace_defs::BODY];
+    let is_pc_lookup = main_frame.current()[trace_defs::LOADING]
+        + main_frame.current()[trace_defs::BODY]
+        - main_frame.current()[trace_defs::LOADING] * main_frame.current()[trace_defs::BODY];
 
     let pc_lookup_2 = E::from(is_pc_lookup) * pc_lookup + (E::ONE - is_pc_lookup.into());
     // TODO: add other memory requests
 
-    let body = main_frame.current()[trace_defs::BODY];
+    // we don't store rd value at the last cycle
+    let body = main_frame.current()[trace_defs::BODY] * main_frame.next()[trace_defs::BODY];
+    let rd_store_2;
     let rd_store = main_frame.rd_store(alphas);
-    let rd_store_2 = E::from(body) * rd_store + (E::ONE - body.into());
+    rd_store_2 = E::from(body) * rd_store + (E::ONE - body.into());
 
+    let body = main_frame.current()[trace_defs::BODY];
     let rs1_load = main_frame.rs1_load(alphas);
     let rs1_load_2 = E::from(body) * rs1_load + (E::ONE - body.into());
 
@@ -134,14 +138,14 @@ fn enforce_b_memory<E, F>(
 
     let mem_response = main_frame.mem_response(alphas);
     // FIX: what if there are more responses?
-    let is_mem_response = is_pc_lookup;
+    let is_mem_response = main_frame.current()[MEMORY_V_COL_RANGE.start + 1];
     let mem_response_2 =
         E::from(is_mem_response) * mem_response + (E::ONE - is_mem_response.into());
 
     result[0] = are_equal(
         aux_frame.next()[MEMORY_BUS_COL_IDX] * pc_lookup_2 * rd_store_2 * rs1_load_2 * rs2_load_2,
         aux_frame.current()[MEMORY_BUS_COL_IDX] * mem_response_2,
-    ) * is_pc_lookup.into();
+    );
 }
 
 // TRANSITION CONSTRAINT HELPERS
@@ -159,7 +163,6 @@ fn enforce_selectors<E: FieldElement>(
     index += 1;
     result[index] = memory_flag * is_binary(frame.selector(1));
     index += 1;
-    assert_eq!(frame.n0(), E::ZERO);
     // s1 is set to 1 when existing memory is being read. this happens when ctx and addr haven't
     // changed, and the next operation is a read (s0 is set).
     result[index] = memory_flag
