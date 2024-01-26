@@ -38,7 +38,7 @@ use decoder::Decoder;
 mod stack;
 use stack::Stack;
 
-mod range;
+pub mod range;
 use range::RangeChecker;
 
 mod host;
@@ -99,8 +99,8 @@ pub struct StackTrace {
 }
 
 pub struct RangeCheckTrace {
-    trace: [Vec<Felt>; RANGE_CHECK_TRACE_WIDTH],
-    aux_builder: range::AuxTraceBuilder,
+    pub trace: [Vec<Felt>; RANGE_CHECK_TRACE_WIDTH],
+    pub aux_builder: range::AuxTraceBuilder,
 }
 
 pub struct ChipletsTrace {

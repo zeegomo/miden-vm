@@ -152,7 +152,7 @@ impl Memory {
         // trace; we also adjust the clock cycle so that delta value for the first row would end
         // up being ZERO. if the trace is empty, return without any further processing.
         let (mut prev_ctx, mut prev_addr, mut prev_clk) = match self.get_first_row_info() {
-            Some((ctx, addr, clk)) => (ctx, addr, clk.as_int() - 1),
+            Some((ctx, addr, clk)) => (ctx, addr, clk - ONE),
             None => return,
         };
 
@@ -164,7 +164,7 @@ impl Memory {
                 // when we start a new address, we set the previous value to all zeros. the effect of
                 // this is that memory is always initialized to zero.
                 for memory_access in addr_trace {
-                    let clk = memory_access.clk().as_int();
+                    let clk = memory_access.clk();
 
                     // compute delta as difference between context IDs, addresses, or clock cycles
                     let delta = if prev_ctx != ctx {
@@ -172,7 +172,7 @@ impl Memory {
                     } else if prev_addr != addr {
                         (addr - prev_addr) as u64
                     } else {
-                        clk - prev_clk - 1
+                        (clk - prev_clk - ONE).as_int()
                     };
 
                     let (delta_hi, delta_lo) = split_u32_into_u16(delta);

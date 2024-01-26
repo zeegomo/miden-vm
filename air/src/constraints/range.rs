@@ -30,7 +30,7 @@ pub const NUM_AUX_ASSERTIONS: usize = 2;
 /// The number of transition constraints required by multiset checks for the Range Checker.
 pub const NUM_AUX_CONSTRAINTS: usize = 1;
 /// The degrees of the Range Checker's auxiliary column constraints, used for multiset checks.
-pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [9];
+pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [4];
 
 // BOUNDARY CONSTRAINTS
 // ================================================================================================
@@ -163,40 +163,20 @@ fn enforce_b_range<E, F>(
     // The denominator values for the LogUp lookup.
     let mv0: E = main_frame.lookup_mv0(alpha);
     let mv1: E = main_frame.lookup_mv1(alpha);
-    let sv0: E = main_frame.lookup_sv0(alpha);
-    let sv1: E = main_frame.lookup_sv1(alpha);
-    let sv2: E = main_frame.lookup_sv2(alpha);
-    let sv3: E = main_frame.lookup_sv3(alpha);
     let range_check: E = alpha - main_frame.v().into();
     let memory_lookups: E = mv0.mul(mv1); // degree 2
-    let stack_lookups: E = sv0.mul(sv1).mul(sv2).mul(sv3); // degree 4
-    let lookups = range_check.mul(stack_lookups).mul(memory_lookups); // degree 7
+    let lookups = range_check.mul(memory_lookups); // degree 3
 
-    // An intermediate value required by all stack terms that includes the flag indicating a stack
-    // operation with range checks. This value has degree 6.
-    let sflag_rc_mem: E = range_check
-        .mul(memory_lookups)
-        .mul_base(<EvaluationFrame<F> as MainFrameExt<F, E>>::u32_rc_op(main_frame));
-    // An intermediate value required by all memory terms that includes the flag indicating the
-    // memory portion of the chiplets trace. This value has degree 8.
-    let mflag_rc_stack: E =
-        range_check.mul(stack_lookups).mul_base(main_frame.chiplets_memory_flag());
+    let mflag_rc_stack: E = range_check.mul_base(main_frame.chiplets_memory_flag()); //degre 2
 
     // The terms for the LogUp check after all denominators have been multiplied in.
-    let b_next_term = aux_frame.b_range_next().mul(lookups); // degree 8
-    let b_term = aux_frame.b_range().mul(lookups); // degree 8
-    let rc_term = stack_lookups.mul(memory_lookups).mul_base(main_frame.multiplicity()); // degree 7
-    let s0_term = sflag_rc_mem.mul(sv1).mul(sv2).mul(sv3); // degree 9
-    let s1_term = sflag_rc_mem.mul(sv0).mul(sv2).mul(sv3); // degree 9
-    let s2_term = sflag_rc_mem.mul(sv0).mul(sv1).mul(sv3); // degree 9
-    let s3_term = sflag_rc_mem.mul(sv0).mul(sv1).mul(sv2); // degree 9
-    let m0_term = mflag_rc_stack.mul(mv1); // degree 9
-    let m1_term = mflag_rc_stack.mul(mv0); // degree 9
+    let b_next_term = aux_frame.b_range_next().mul(lookups); // degree 4
+    let b_term = aux_frame.b_range().mul(lookups); // degree 4
+    let rc_term = memory_lookups.mul_base(main_frame.multiplicity()); // degree 3
+    let m0_term = mflag_rc_stack.mul(mv1); // degree 3
+    let m1_term = mflag_rc_stack.mul(mv0); // degree 3
 
-    result[0] = are_equal(
-        b_next_term,
-        b_term + rc_term - s0_term - s1_term - s2_term - s3_term - m0_term - m1_term,
-    );
+    result[0] = are_equal(b_next_term, b_term + rc_term - m0_term - m1_term);
 }
 
 // RANGE CHECKER FRAME EXTENSION TRAIT
