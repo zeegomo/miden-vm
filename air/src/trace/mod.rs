@@ -41,7 +41,7 @@ pub const STACK_TRACE_WIDTH: usize = 19;
 pub const STACK_TRACE_RANGE: Range<usize> = range(STACK_TRACE_OFFSET, STACK_TRACE_WIDTH);
 
 // Range check trace
-pub const RANGE_CHECK_TRACE_OFFSET: usize = STACK_TRACE_RANGE.end;
+pub const RANGE_CHECK_TRACE_OFFSET: usize = trace_defs::RANGE_START;
 pub const RANGE_CHECK_TRACE_WIDTH: usize = 2;
 pub const RANGE_CHECK_TRACE_RANGE: Range<usize> =
     range(RANGE_CHECK_TRACE_OFFSET, RANGE_CHECK_TRACE_WIDTH);
@@ -73,13 +73,13 @@ pub const STACK_AUX_TRACE_RANGE: Range<usize> =
     range(STACK_AUX_TRACE_OFFSET, STACK_AUX_TRACE_WIDTH);
 
 // Range check auxiliary columns
-pub const RANGE_CHECK_AUX_TRACE_OFFSET: usize = STACK_AUX_TRACE_RANGE.end;
+pub const RANGE_CHECK_AUX_TRACE_OFFSET: usize = CHIPLETS_AUX_TRACE_RANGE.end;
 pub const RANGE_CHECK_AUX_TRACE_WIDTH: usize = 1;
 pub const RANGE_CHECK_AUX_TRACE_RANGE: Range<usize> =
     range(RANGE_CHECK_AUX_TRACE_OFFSET, RANGE_CHECK_AUX_TRACE_WIDTH);
 
 // Chiplets auxiliary columns
-pub const CHIPLETS_AUX_TRACE_OFFSET: usize = HASHER_AUX_TRACE_RANGE.end;
+pub const CHIPLETS_AUX_TRACE_OFFSET: usize = 0;
 pub const CHIPLETS_AUX_TRACE_WIDTH: usize = 1;
 pub const CHIPLETS_AUX_TRACE_RANGE: Range<usize> =
     range(CHIPLETS_AUX_TRACE_OFFSET, CHIPLETS_AUX_TRACE_WIDTH);
