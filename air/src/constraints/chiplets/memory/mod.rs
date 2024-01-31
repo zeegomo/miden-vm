@@ -1,9 +1,12 @@
 use super::{EvaluationFrame, FieldElement, Vec};
 use crate::constraints::MainFrameExt;
-use crate::trace::chiplets::{
-    MEMORY_ADDR_COL_IDX, MEMORY_BUS_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX,
-    MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX, MEMORY_D_INV_COL_IDX, MEMORY_TRACE_OFFSET,
-    MEMORY_V_COL_RANGE,
+use crate::trace::{
+    chiplets::{
+        MEMORY_ADDR_COL_IDX, MEMORY_BUS_COL_IDX, MEMORY_CLK_COL_IDX, MEMORY_CTX_COL_IDX,
+        MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX, MEMORY_D_INV_COL_IDX, MEMORY_TRACE_OFFSET,
+        MEMORY_V_COL_RANGE,
+    },
+    CHIPLETS_OFFSET,
 };
 use crate::utils::{are_equal, binary_not, is_binary, EvaluationResult};
 use crate::Felt;
@@ -138,7 +141,7 @@ fn enforce_b_memory<E, F>(
 
     let mem_response = main_frame.mem_response(alphas);
     // FIX: what if there are more responses?
-    let is_mem_response = main_frame.current()[MEMORY_V_COL_RANGE.start + 1];
+    let is_mem_response = F::ONE - main_frame.current()[CHIPLETS_OFFSET];
     let mem_response_2 =
         E::from(is_mem_response) * mem_response + (E::ONE - is_mem_response.into());
 

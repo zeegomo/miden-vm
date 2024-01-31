@@ -353,6 +353,7 @@ impl Hasher {
 
     /// Fills the provided trace fragment with trace data from this hasher trace instance. This
     /// also returns the trace builder for hasher-related auxiliary trace columns.
+    #[allow(dead_code)]
     pub(super) fn fill_trace(self, trace: &mut TraceFragment) -> ChipletsVTableTraceBuilder {
         self.trace.fill_trace(trace);
 

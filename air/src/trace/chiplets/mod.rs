@@ -11,11 +11,11 @@ pub mod memory;
 // ================================================================================================
 
 /// The number of columns in the chiplets which are used as selectors for the hasher chiplet.
-pub const NUM_HASHER_SELECTORS: usize = 1;
+pub const NUM_HASHER_SELECTORS: usize = 0;
 /// The number of columns in the chiplets which are used as selectors for the bitwise chiplet.
-pub const NUM_BITWISE_SELECTORS: usize = 2;
+pub const NUM_BITWISE_SELECTORS: usize = 0;
 /// The number of columns in the chiplets which are used as selectors for the memory chiplet.
-pub const NUM_MEMORY_SELECTORS: usize = 3;
+pub const NUM_MEMORY_SELECTORS: usize = 1;
 /// The number of columns in the chiplets which are used as selectors for the kernel ROM chiplet.
 pub const NUM_KERNEL_ROM_SELECTORS: usize = 4;
 

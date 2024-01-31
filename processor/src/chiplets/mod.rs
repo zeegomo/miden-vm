@@ -518,74 +518,32 @@ impl Chiplets {
     /// on data from [Chiplets].
     fn fill_trace(self, trace: &mut [Vec<Felt>; CHIPLETS_WIDTH]) -> AuxTraceBuilder {
         // get the rows where chiplets begin.
-        let bitwise_start = self.bitwise_start();
         let memory_start = self.memory_start();
-        let kernel_rom_start = self.kernel_rom_start();
         let padding_start = self.padding_start();
 
         let Chiplets {
-            clk: _,
-            hasher,
-            bitwise,
-            memory,
-            kernel_rom,
-            mut bus,
+            memory, mut bus, ..
         } = self;
 
         // populate external selector columns for all chiplets
-        trace[0][bitwise_start..].fill(ONE);
-        trace[1][memory_start..].fill(ONE);
-        trace[2][kernel_rom_start..].fill(ONE);
-        trace[3][padding_start..].fill(ONE);
+        trace[0][padding_start..].fill(ONE);
 
         // allocate fragments to be filled with the respective execution traces of each chiplet
-        let mut hasher_fragment = TraceFragment::new(CHIPLETS_WIDTH);
-        let mut bitwise_fragment = TraceFragment::new(CHIPLETS_WIDTH);
+        // let mut hasher_fragment = TraceFragment::new(CHIPLETS_WIDTH);
+        // let mut bitwise_fragment = TraceFragment::new(CHIPLETS_WIDTH);
         let mut memory_fragment = TraceFragment::new(CHIPLETS_WIDTH);
-        let mut kernel_rom_fragment = TraceFragment::new(CHIPLETS_WIDTH);
+        // let mut kernel_rom_fragment = TraceFragment::new(CHIPLETS_WIDTH);
 
         // add the hasher, bitwise, memory, and kernel ROM segments to their respective fragments
         // so they can be filled with the chiplet traces
-        for (column_num, column) in trace.iter_mut().enumerate().skip(1) {
-            match column_num {
-                1 | 15..=17 => {
-                    // columns 1 and 15 - 17 are relevant only for the hasher
-                    hasher_fragment.push_column_slice(column, hasher.trace_len());
-                }
-                2 => {
-                    // column 2 is relevant to the hasher and to bitwise chiplet
-                    let rest = hasher_fragment.push_column_slice(column, hasher.trace_len());
-                    bitwise_fragment.push_column_slice(rest, bitwise.trace_len());
-                }
-                3 | 10..=14 => {
-                    // columns 3 and 10 - 14 are relevant for hasher, bitwise, and memory chiplets
-                    let rest = hasher_fragment.push_column_slice(column, hasher.trace_len());
-                    let rest = bitwise_fragment.push_column_slice(rest, bitwise.trace_len());
-                    memory_fragment.push_column_slice(rest, memory.trace_len());
-                }
-                4..=9 => {
-                    // columns 4 - 9 are relevant to all chiplets
-                    let rest = hasher_fragment.push_column_slice(column, hasher.trace_len());
-                    let rest = bitwise_fragment.push_column_slice(rest, bitwise.trace_len());
-                    let rest = memory_fragment.push_column_slice(rest, memory.trace_len());
-                    kernel_rom_fragment.push_column_slice(rest, kernel_rom.trace_len());
-                }
-                _ => panic!("invalid column index"),
-            }
+        for column in trace.iter_mut().skip(1) {
+            memory_fragment.push_column_slice(column, memory.trace_len());
         }
 
         // fill the fragments with the execution trace from each chiplet
         // TODO: this can be parallelized to fill the traces in multiple threads
-        let mut table_builder = hasher.fill_trace(&mut hasher_fragment);
-        bitwise.fill_trace(&mut bitwise_fragment, &mut bus, bitwise_start);
         memory.fill_trace(&mut memory_fragment, &mut bus, memory_start);
-        kernel_rom.fill_trace(
-            &mut kernel_rom_fragment,
-            &mut bus,
-            &mut table_builder,
-            kernel_rom_start,
-        );
 
-        AuxTraceBuilder::new(bus.into_aux_builder(), table_builder)
+        AuxTraceBuilder::new(bus.into_aux_builder(), ChipletsVTableTraceBuilder::default())
     }
 }

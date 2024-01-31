@@ -99,6 +99,7 @@ impl KernelRom {
     // --------------------------------------------------------------------------------------------
 
     /// Populates the provided execution trace fragment with execution trace of this kernel ROM.
+    #[allow(dead_code)]
     pub fn fill_trace(
         self,
         trace: &mut TraceFragment,
@@ -161,6 +162,7 @@ impl ProcAccessInfo {
     }
 
     /// Writes a single row into the provided trace fragment for this procedure access entry.
+    #[allow(dead_code)]
     pub fn write_into_trace(&self, trace: &mut TraceFragment, row: usize, idx: Felt) {
         let s0 = if self.num_accesses == 0 { ZERO } else { ONE };
         trace.set(row, 0, s0);

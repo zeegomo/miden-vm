@@ -155,6 +155,7 @@ impl Bitwise {
     /// was provided, which is calculated as an offset from the first row of the Bitwise chiplet.
     /// Lookup values come from the last row of each bitwise operation cycle which contains both the
     /// aggregated input values and the output result.
+    #[allow(dead_code)]
     pub fn fill_trace(
         self,
         trace: &mut TraceFragment,

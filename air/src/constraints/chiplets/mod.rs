@@ -98,10 +98,10 @@ pub fn enforce_aux_constraints<F, E>(
 fn enforce_selectors<E: FieldElement>(frame: &EvaluationFrame<E>, result: &mut [E]) {
     // --- Selector flags must be binary ----------------------------------------------------------
     // When selectors s0 and s1 are set, s2 is binary.
-    result[0] = is_binary(frame.s(2));
+    result[0] = is_binary(frame.s(0));
     // --- Selector flags can only stay the same or change from 0 -> 1 ----------------------------
     // When selectors s0 and s1 are set, s2 must either be 0 in the current row or 1 in both rows.
-    result[1] = frame.s(2) * are_equal(frame.s(2), frame.s_next(2));
+    result[1] = frame.s(0) * are_equal(frame.s(0), frame.s_next(0));
 }
 
 // CHIPLETS FRAME EXTENSION TRAIT
@@ -162,9 +162,9 @@ impl<E: FieldElement> EvaluationFrameExt<E> for &EvaluationFrame<E> {
     #[inline(always)]
     fn memory_flag(&self, include_last_row: bool) -> E {
         if include_last_row {
-            self.s(0) * self.s(1) * binary_not(self.s(2))
+            binary_not(self.s(0))
         } else {
-            self.s(0) * self.s(1) * binary_not(self.s_next(2))
+            binary_not(self.s_next(0))
         }
     }
 }

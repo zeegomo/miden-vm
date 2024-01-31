@@ -4,7 +4,7 @@ use super::{create_range, Felt, Range, ONE, ZERO};
 // ================================================================================================
 
 /// Number of columns needed to record an execution trace of the memory chiplet.
-pub const TRACE_WIDTH: usize = 12;
+pub const TRACE_WIDTH: usize = 9;
 
 /// Number of selector columns in the trace.
 pub const NUM_SELECTORS: usize = 2;
@@ -36,7 +36,7 @@ pub const MEMORY_WRITE_LABEL: u8 = 0b0100;
 // --- COLUMN ACCESSOR INDICES WITHIN THE CHIPLET -------------------------------------------------
 
 /// The number of elements accessible in one read or write memory access.
-pub const NUM_ELEMENTS: usize = 4;
+pub const NUM_ELEMENTS: usize = 1;
 
 /// Column to hold the context ID of the current memory context.
 pub const CTX_COL_IDX: usize = NUM_SELECTORS;

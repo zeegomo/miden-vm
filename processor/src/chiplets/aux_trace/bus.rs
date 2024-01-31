@@ -138,6 +138,7 @@ impl ChipletsBus {
     /// Provides the data of a bitwise operation contained in the [Bitwise] table. The bitwise value
     /// is provided at cycle `response_cycle`, which is the row of the execution trace that contains
     /// this Bitwise row. It will always be the final row of a Bitwise operation cycle.
+    #[allow(dead_code)]
     pub(crate) fn provide_bitwise_operation(&mut self, lookup: BitwiseLookup, response_cycle: u32) {
         self.provide_lookup(response_cycle);
         self.responses.push(ChipletLookup::Bitwise(lookup));
@@ -183,6 +184,7 @@ impl ChipletsBus {
     /// Provides a kernel procedure call contained in the [KernelRom] chiplet. The procedure access
     /// is provided at cycle `response_cycle`, which is the row of the execution trace that contains
     /// this [KernelRom] row.
+    #[allow(dead_code)]
     pub(crate) fn provide_kernel_proc_call(
         &mut self,
         lookup: KernelProcLookup,
