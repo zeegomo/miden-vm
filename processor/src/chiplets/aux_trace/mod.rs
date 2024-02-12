@@ -11,6 +11,7 @@ pub(crate) use virtual_table::{ChipletsVTableRow, ChipletsVTableUpdate};
 
 /// Contains all relevant information and describes how to construct the execution trace for
 /// chiplets-related auxiliary columns (used in multiset checks).
+#[derive(Clone)]
 pub struct AuxTraceBuilder {
     bus_builder: BusTraceBuilder,
     table_builder: ChipletsVTableTraceBuilder,
@@ -53,6 +54,7 @@ impl AuxTraceBuilder {
 // ================================================================================================
 
 /// Describes how to construct the execution trace of the chiplets bus auxiliary trace column.
+#[derive(Clone)]
 pub struct BusTraceBuilder {
     pub(super) lookup_hints: Vec<(u32, ChipletsBusRow)>,
     pub(super) requests: Vec<ChipletLookup>,
